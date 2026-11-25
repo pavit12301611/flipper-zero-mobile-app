@@ -96,11 +96,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           APK=dist/flipper-lab-a53.apk
+          NOTES="Flipper Zero + ESP32 pentest lab for Samsung Galaxy A53 5G. Direct APK download: https://github.com/${{ github.repository }}/releases/download/v1.0.0/flipper-lab-a53.apk"
           gh release view v1.0.0 >/dev/null 2>&1 || \
-            gh release create v1.0.0 --target "$GITHUB_SHA" --title "Flipper Lab A53 v1.0.0" \
-              --notes "Flipper Zero + ESP32 pentest lab for Samsung Galaxy A53 5G.
-
-Direct APK download: https://github.com/${{ github.repository }}/releases/download/v1.0.0/flipper-lab-a53.apk"
+            gh release create v1.0.0 --target "$GITHUB_SHA" --title "Flipper Lab A53 v1.0.0" --notes "$NOTES"
           ok=0
           for i in 1 2 3; do
             if gh release upload v1.0.0 "$APK" --clobber; then ok=1; break; fi
