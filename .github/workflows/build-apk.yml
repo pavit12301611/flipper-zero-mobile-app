@@ -7,11 +7,14 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   apk:
     name: Build flipper-lab-a53.apk
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: ${{ runner.temp }}/android-sdk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,17 +25,24 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Setup Java 17
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 34
-          build-tools: 34.0.0
+      - name: Install Android SDK command-line tools
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            curl -fsSL -o /tmp/cmdtools.zip \
+              https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+            unzip -q /tmp/cmdtools.zip -d "$ANDROID_HOME/cmdline-tools"
+            mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          fi
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Install npm dependencies
         run: npm ci
@@ -40,28 +50,62 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Sync Capacitor
-        run: npx cap sync android
+      - name: Add & sync Capacitor Android project
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Install Gradle wrapper jar
+        run: |
+          cd android
+          mkdir -p gradle/wrapper
+          curl -fsSL -o gradle/wrapper/gradle-wrapper.jar \
+            https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
 
       - name: Build debug APK
-        run: bash -lc "cd android && ./gradlew assembleDebug --no-daemon"
+        run: |
+          cd android
+          ./gradlew --no-daemon --stacktrace assembleDebug 2>&1 | tee /tmp/build.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Inspect APK
+        run: |
+          ls -la android/app/build/outputs/apk/debug/
+          unzip -l android/app/build/outputs/apk/debug/app-debug.apk | head -20
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: flipper-lab-a53-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
 
-      - name: Publish release asset
-        uses: softprops/action-gh-release@v2
-        if: github.event_name == 'workflow_dispatch'
-        with:
-          files: android/app/build/outputs/apk/debug/app-debug.apk
-          name: flipper-lab-a53.apk
-          body: |
-            Flipper Lab A53 APK (debug build).
-            - Web build from the current commit.
-            - Signed with the debug key — installable via `adb install -r`.
-            - For release signing, add a `release-keystore.jks` and signing config in `android/app/build.gradle`.
-          draft: false
-          prerelease: true
+      - name: Commit APK into dist/ on this branch (directly fetchable from GitHub)
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/flipper-lab-a53.apk
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git add -f dist/flipper-lab-a53.apk
+          git commit -m "ci: release APK build ${GITHUB_SHA:0:7} [skip ci]" || true
+          git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}" || true
+
+      - name: Publish GitHub Release with APK asset (direct download link)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APK=dist/flipper-lab-a53.apk
+          gh release view v1.0.0 >/dev/null 2>&1 || \
+            gh release create v1.0.0 --target "$GITHUB_SHA" --title "Flipper Lab A53 v1.0.0" \
+              --notes "Flipper Zero + ESP32 pentest lab for Samsung Galaxy A53 5G.
+
+Direct APK download: https://github.com/${{ github.repository }}/releases/download/v1.0.0/flipper-lab-a53.apk"
+          ok=0
+          for i in 1 2 3; do
+            if gh release upload v1.0.0 "$APK" --clobber; then ok=1; break; fi
+            echo "upload attempt $i failed"
+            sleep 5
+          done
+          [ "$ok" = "1" ] || echo "WARN: release asset upload failed"
+          gh release view v1.0.0 --json assets --jq '.assets[].browser_download_url' || true
