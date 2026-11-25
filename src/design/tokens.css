@@ -1,0 +1,50 @@
+/* Figma tokens — Pavit's team library (MKaHE3j2iFBLntc4pDpVwz)
+   Fuschia/Iris fills from nodes 91:0–91:5, type from 116:2–116:4.
+   Dark hacker surface is derived (not in Figma) to keep Iris/Fuschia legible on A53 AMOLED. */
+:root {
+  --fuschia-100: #EF5DA8;
+  --fuschia-80: #F178B6;
+  --fuschia-60: #FCDEEC;
+  --iris-100: #5D5FEF;
+  --iris-80: #7879F1;
+  --iris-60: #A5A6F6;
+
+  --bg: #0B0B12;
+  --bg-2: #10101A;
+  --surface: #15151F;
+  --surface-2: #1C1C2A;
+  --surface-3: #232336;
+  --line: #26263A;
+  --line-2: #32324A;
+  --text: #F4F4FA;
+  --text-2: #C9C9DC;
+  --muted: #8E8EA8;
+  --faint: #5C5C78;
+  --ok: #3DD68C;
+  --warn: #FFB224;
+  --danger: #FF5C7A;
+  --cyan: #4CC9F0;
+
+  --font: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+
+  --shadow: 0 10px 30px rgba(0,0,0,.45);
+  --nav-h: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+body { -webkit-font-smoothing: antialiased; overscroll-behavior-y: none; }
+button { font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+.h1 { font-size: 34px; line-height: 39.88px; letter-spacing: -0.68px; font-weight: 700; margin: 0; }
+.h2 { font-size: 20px; line-height: 23.46px; letter-spacing: -0.4px; font-weight: 700; margin: 0; }
+.body { font-size: 13px; line-height: 15.25px; letter-spacing: -0.26px; font-weight: 400; }
+.caption { font-size: 11px; line-height: 14px; letter-spacing: .02em; color: var(--muted); }
+.mono { font-family: var(--mono); font-size: 12px; line-height: 1.55; }

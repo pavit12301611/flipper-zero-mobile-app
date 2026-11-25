@@ -1,0 +1,18 @@
+{
+  "name": "Flipper Lab — A53 ESP32 Pentest",
+  "short_name": "Flipper Lab",
+  "description": "Flipper Zero + ESP32 pentest lab tuned for Samsung Galaxy A53 5G",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0B12",
+  "theme_color": "#0B0B12",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230B0B12'/%3E%3Cpath d='M144 352V160h224v64H208v32h128v64H208v32z' fill='%235D5FEF'/%3E%3Ccircle cx='368' cy='352' r='48' fill='%23EF5DA8'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
